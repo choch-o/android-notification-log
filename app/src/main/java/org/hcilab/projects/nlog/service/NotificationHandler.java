@@ -30,10 +30,17 @@ public class NotificationHandler {
 			if(Const.DEBUG) System.out.println("posted ongoing!");
 			return;
 		}
-		boolean text = sp.getBoolean(Const.PREF_TEXT, true);
-		String lastActivity = sp.getString(Const.PREF_LAST_ACTIVITY, null);
-		NotificationObject no = new NotificationObject(context, sbn, text, -1, lastActivity);
-		log(DatabaseHelper.PostedEntry.TABLE_NAME, DatabaseHelper.PostedEntry.COLUMN_NAME_CONTENT, no.toString());
+
+		// Log only notifications from KakaoTalk and exclude system notifications by id
+		if (sbn.getPackageName().equals("com.kakao.talk") && (sbn.getId() == 2)) {
+            boolean text = sp.getBoolean(Const.PREF_TEXT, true);
+            String lastActivity = sp.getString(Const.PREF_LAST_ACTIVITY, null);
+            NotificationObject no = new NotificationObject(context, sbn, text, -1, lastActivity);
+            log(DatabaseHelper.PostedEntry.TABLE_NAME, DatabaseHelper.PostedEntry.COLUMN_NAME_CONTENT, no.toString());
+
+            // Add interactive rating functionality
+
+        }
 	}
 
 	void handleRemoved(StatusBarNotification sbn, int reason) {

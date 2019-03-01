@@ -51,6 +51,15 @@
                 android:value=".ui.BrowseActivity" />
         </activity>
 
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:label="Settings"
+            android:parentActivityName=".ui.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACITIVITY"
+                android:value=".ui.MainActivity" />
+        </activity>
+
         <!-- Services -->
 
         <service

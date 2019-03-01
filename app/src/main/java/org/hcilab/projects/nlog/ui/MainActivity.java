@@ -1,6 +1,7 @@
 package org.hcilab.projects.nlog.ui;
 
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
@@ -9,6 +10,8 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -21,10 +24,18 @@ import org.hcilab.projects.nlog.service.NotificationHandler;
 
 public class MainActivity extends AppCompatActivity {
 
+    private Context context;
+    private RecyclerView recyclerView;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+        context = this;
+
+		RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+		recyclerView = findViewById(R.id.message_list);
+		recyclerView.setLayoutManager(layoutManager);
 	}
 
 	@Override
@@ -36,56 +47,24 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.menu_delete:
-				confirm();
+			case R.id.menu_settings:
+				settings();
 				return true;
-			case R.id.menu_export:
-				export();
-				return true;
-
 		}
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void confirm() {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AlertDialogStyle);
-		builder.setTitle(R.string.dialog_delete_header);
-		builder.setMessage(R.string.dialog_delete_text);
-		builder.setNegativeButton(R.string.dialog_delete_no, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-			}
-		});
-		builder.setPositiveButton(R.string.dialog_delete_yes, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialogInterface, int i) {
-				truncate();
-			}
-		});
-		builder.show();
-	}
+	private void settings() {
+	    Intent intent = new Intent(context, SettingsActivity.class);
+	    startActivity(intent);
+    }
 
-	private void truncate() {
-		try {
-			DatabaseHelper dbHelper = new DatabaseHelper(this);
-			SQLiteDatabase db = dbHelper.getWritableDatabase();
-			db.execSQL(DatabaseHelper.SQL_DELETE_ENTRIES_POSTED);
-			db.execSQL(DatabaseHelper.SQL_CREATE_ENTRIES_POSTED);
-			db.execSQL(DatabaseHelper.SQL_DELETE_ENTRIES_REMOVED);
-			db.execSQL(DatabaseHelper.SQL_CREATE_ENTRIES_REMOVED);
-			Intent local = new Intent();
-			local.setAction(NotificationHandler.BROADCAST);
-			LocalBroadcastManager.getInstance(this).sendBroadcast(local);
-		} catch (Exception e) {
-			if(Const.DEBUG) e.printStackTrace();
-		}
-	}
+    private void update() {
+	    MessageListAdapter adapter = new MessageListAdapter(this);
+	    recyclerView.setAdapter(adapter);
 
-	private void export() {
-		if(!ExportTask.exporting) {
-			ExportTask exportTask = new ExportTask(this, findViewById(android.R.id.content));
-			exportTask.execute();
-		}
-	}
-
+	    if (adapter.getItemCount() == 0) {
+	        Toast.makeText(context, R.string.empty_log_file, Toast.LENGTH_LONG).show();
+        }
+    }
 }
